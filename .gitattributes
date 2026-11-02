@@ -1,0 +1,28 @@
+# 默认行为：由 Git 自动判断文本文件，检出时统一使用 LF
+* text=auto eol=lf
+
+# ---- 源码 ----
+*.py    text diff=python
+*.toml  text
+*.md    text
+*.html  text
+*.css   text
+*.js    text
+*.json  text
+*.xml   text
+
+# ---- 脚本：按目标平台决定换行符 ----
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf
+*.sh    text eol=lf
+
+# ---- 二进制 ----
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.7z    binary

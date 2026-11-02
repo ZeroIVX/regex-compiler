@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Compiler — 正则表达式编译器</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ---- Header ---- */
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  padding: 12px 28px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(102,126,234,0.3);
+  z-index: 10;
+}
+.header h1 { font-size: 20px; font-weight: 600; letter-spacing: 0.5px; }
+.header .badge {
+  background: rgba(255,255,255,0.2);
+  padding: 3px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ---- Layout ---- */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* ---- Left Panel ---- */
+.panel-left {
+  width: 380px;
+  min-width: 380px;
+  background: #fff;
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 20px;
+  gap: 16px;
+}
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #555;
+}
+.input-group input {
+  padding: 10px 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  background: #fafafa;
+}
+.input-group input:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+  background: #fff;
+}
+.input-group input.error {
+  border-color: #e24b4a;
+  background: #fff5f5;
+}
+
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+}
+.btn-primary:hover { box-shadow: 0 4px 12px rgba(102,126,234,0.4); }
+.btn-secondary {
+  background: #f0f2f5;
+  color: #555;
+}
+.btn-secondary:hover { background: #e4e7ed; }
+.btn-accent {
+  background: linear-gradient(135deg, #1d9e75, #0f6e56);
+  color: #fff;
+}
+.btn-accent:hover { box-shadow: 0 4px 12px rgba(29,158,117,0.4); }
+.btn-danger {
+  background: linear-gradient(135deg, #e24b4a, #a32d2d);
+  color: #fff;
+}
+.btn-danger:hover { box-shadow: 0 4px 12px rgba(226,75,74,0.4); }
+
+/* ---- Stats ---- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+.stat-card {
+  background: #f8f9fc;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.stat-card .num {
+  font-size: 22px;
+  font-weight: 700;
+  color: #667eea;
+}
+.stat-card .lbl {
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+}
+.stat-card.highlight {
+  background: linear-gradient(135deg, #eaf3de, #c0dd97);
+  border-color: #97c459;
+}
+.stat-card.highlight .num { color: #639922; }
+
+/* ---- Right Panel ---- */
+.panel-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #fff;
+  margin: 12px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* ---- Tabs ---- */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e8e8e8;
+  padding: 0 20px;
+}
+.tab {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+  user-select: none;
+}
+.tab:hover { color: #555; }
+.tab.active { color: #667eea; border-bottom-color: #667eea; }
+
+/* ---- Viz Area ---- */
+.viz-area {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafbfc;
+  min-height: 300px;
+}
+.viz-placeholder {
+  color: #ccc;
+  font-size: 14px;
+  text-align: center;
+  padding: 40px;
+  line-height: 1.8;
+}
+.viz-placeholder .icon { font-size: 48px; display: block; margin-bottom: 12px; }
+
+/* ---- Simulation Table ---- */
+.sim-section {
+  border-top: 1px solid #e8e8e8;
+  background: #fff;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.sim-section .header {
+  background: #f8f9fc;
+  color: #555;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-bottom: 1px solid #e8e8e8;
+}
+.sim-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+}
+.sim-table th {
+  background: #fafbfc;
+  padding: 8px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e8e8e8;
+}
+.sim-table td {
+  padding: 8px 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.sim-table tr.accepted td:last-child {
+  color: #639922;
+  font-weight: 600;
+}
+.sim-table tr.rejected td:last-child {
+  color: #e24b4a;
+  font-weight: 600;
+}
+.sim-table tr.error-row {
+  background: #fff5f5;
+}
+.sim-table tr.error-row td {
+  color: #e24b4a;
+}
+.sim-table tr.final-row {
+  background: #f8fff5;
+}
+
+/* ---- Result Banner ---- */
+.result-banner {
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  border-top: 1px solid #e8e8e8;
+}
+.result-banner.accept {
+  background: linear-gradient(135deg, #eaf3de, #c0dd97);
+  color: #3b6d11;
+}
+.result-banner.reject {
+  background: linear-gradient(135deg, #fcebeb, #f7c1c1);
+  color: #a32d2d;
+}
+.result-banner.idle {
+  background: #f8f9fc;
+  color: #aaa;
+}
+
+/* ---- Token display ---- */
+.token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.token-chip {
+  background: #e8f0fe;
+  color: #1967d2;
+  padding: 3px 8px;
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  border: 1px solid #d2e3fc;
+}
+
+.error-msg {
+  background: #fff5f5;
+  border: 1px solid #f7c1c1;
+  color: #a32d2d;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: monospace;
+  display: none;
+}
+.error-msg.show { display: block; }
+
+/* ---- Responsive ---- */
+@media (max-width: 900px) {
+  .main { flex-direction: column; }
+  .panel-left { width: 100%; min-width: 0; }
+  .panel-right { margin: 0; border-radius: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>⚙ Regex Compiler</h1>
+  <span class="badge">编译原理 · 正则引擎可视化</span>
+</div>
+
+<div class="main">
+  <!-- ============ LEFT PANEL ============ -->
+  <div class="panel-left">
+    <div class="section-title">Pattern</div>
+    <div class="input-group">
+      <label>正则表达式</label>
+      <input id="patternInput" type="text" placeholder="例如: (a|b)*abb" value="(a|b)*abb"
+        oninput="onPatternChange()">
+    </div>
+    <div class="token-list" id="tokenList"></div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="section-title" style="margin-top:8px">Test String</div>
+    <div class="input-group">
+      <label>测试字符串</label>
+      <input id="textInput" type="text" placeholder="例如: ababb" value="ababb"
+        oninput="onTextChange()">
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="doMatch()">Match 匹配</button>
+      <button class="btn btn-accent" onclick="doSearch()">Search 搜索</button>
+      <button class="btn btn-secondary" onclick="doFindAll()">FindAll 全搜</button>
+      <button class="btn btn-danger" onclick="doClear()">Clear 清除</button>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Pipeline Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="num" id="statTokens">-</div><div class="lbl">Tokens</div></div>
+      <div class="stat-card"><div class="num" id="statNfa">-</div><div class="lbl">NFA States</div></div>
+      <div class="stat-card"><div class="num" id="statDfa">-</div><div class="lbl">DFA States</div></div>
+      <div class="stat-card highlight"><div class="num" id="statMinDfa">-</div><div class="lbl">Min DFA</div></div>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Shortcuts</div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="loadExample('(a|b)*abb','ababb')">经典</button>
+      <button class="btn btn-secondary" onclick="loadExample('a(b|c)*d','abcbcd')">复杂选择</button>
+      <button class="btn btn-secondary" onclick="loadExample('abc','abc')">连接</button>
+      <button class="btn btn-secondary" onclick="loadExample('a*b+c?','aabbbc')">组合</button>
+      <button class="btn btn-secondary" onclick="loadExample('(a|b)*','ababba')">通用星</button>
+      <button class="btn btn-secondary" onclick="loadExample('a+','aaa')">正闭包</button>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT PANEL ============ -->
+  <div class="panel-right">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('mindfa')">最小化 DFA</div>
+      <div class="tab" onclick="switchTab('dfa')">DFA</div>
+      <div class="tab" onclick="switchTab('nfa')">NFA</div>
+    </div>
+
+    <div class="viz-area" id="vizArea">
+      <div class="viz-placeholder">
+        <span class="icon">📐</span>
+        输入正则表达式和测试字符串，<br>点击 Match 查看可视化
+      </div>
+    </div>
+
+    <div class="sim-section">
+      <div class="header">Simulation Trace — DFA 状态转移轨迹</div>
+      <table class="sim-table" id="simTable">
+        <thead><tr>
+          <th>Step</th><th>位置</th><th>输入字符</th>
+          <th>从状态</th><th>到状态</th><th>Accept?</th>
+        </tr></thead>
+        <tbody id="simBody">
+          <tr><td colspan="6" style="text-align:center;color:#ccc;padding:20px">
+            尚未执行匹配
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="result-banner idle" id="resultBanner">
+      等待操作...
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- State ----
+let currentTab = 'mindfa';
+let currentPattern = '(a|b)*abb';
+let currentText = 'ababb';
+let pipelineInfo = null;
+
+// ---- Init ----
+onPatternChange();
+
+// ---- API helpers ----
+async function api(path) {
+  try {
+    const res = await fetch(path);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    if (path.includes('/visualize')) return res.text();
+    return res.json();
+  } catch (e) {
+    if (e.message && e.message.includes('Failed to fetch')) {
+      showError('无法连接服务器，请确认 server.py 已启动');
+    } else {
+      showError(e.message);
+    }
+    throw e;
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('errorMsg');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function hideError() {
+  document.getElementById('errorMsg').classList.remove('show');
+}
+
+// ---- Pattern change handler ----
+async function onPatternChange() {
+  const p = document.getElementById('patternInput').value.trim();
+  hideError();
+  document.getElementById('tokenList').innerHTML = '';
+  Object.keys({
+    statTokens:'-',statNfa:'-',statDfa:'-',statMinDfa:'-'
+  }).forEach(id => document.getElementById(id).textContent = '-');
+
+  if (!p) return;
+  currentPattern = p;
+
+  try {
+    const info = await api(`/api/info?pattern=${encodeURIComponent(p)}`);
+    pipelineInfo = info;
+    // Stats
+    document.getElementById('statTokens').textContent = info.tokens;
+    document.getElementById('statNfa').textContent = info.nfa_states;
+    document.getElementById('statDfa').textContent = info.dfa_states;
+    document.getElementById('statMinDfa').textContent = info.min_dfa_states;
+
+    // Tokens
+    const tl = document.getElementById('tokenList');
+    info.token_list.forEach(t => {
+      const chip = document.createElement('span');
+      chip.className = 'token-chip';
+      chip.textContent = t.type + (t.value ? `:'${t.value}'` : '');
+      chip.title = `位置: ${t.pos}`;
+      tl.appendChild(chip);
+    });
+
+    // Refresh viz
+    showVisualization(currentTab);
+  } catch(e) {}
+}
+
+function onTextChange() {
+  currentText = document.getElementById('textInput').value;
+  hideError();
+}
+
+// ---- Visualizations ----
+async function showVisualization(type) {
+  const p = document.getElementById('patternInput').value.trim();
+  if (!p) return;
+  try {
+    const svg = await api(`/api/visualize?pattern=${encodeURIComponent(p)}&type=${type}`);
+    const viz = document.getElementById('vizArea');
+    viz.innerHTML = `<div style="width:100%;height:100%;overflow:auto;display:flex;align-items:flex-start;justify-content:center">${svg}</div>`;
+  } catch(e) {}
+}
+
+function switchTab(type) {
+  currentTab = type;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(type)) t.classList.add('active');
+  });
+  showVisualization(type);
+}
+
+// ---- Match / Search / FindAll ----
+async function doMatch() {
+  const p = document.getElementById('patternInput').value.trim();
+  const t = document.getElementById('textInput').value;
+  if (!p) return;
+  currentText = t;
+  hideError();
+
+  try {
+    const result = await api(
+      `/api/match?pattern=${encodeURIComponent(p)}&text=${encodeURIComponent(t)}&mode=match`
+    );
+    renderSimulation(result);
+    renderResult(result.accepted, 'Match');
+  } catch(e) {}
+}
+
+async function doSearch() {
+  const p = document.getElementById('patternInput').value.trim();
+  const t = document.getElementById('textInput').value;
+  if (!p) return;
+  currentText = t;
+  hideError();
+
+  try {
+    const result = await api(
+      `/api/match?pattern=${encodeURIComponent(p)}&text=${encodeURIComponent(t)}&mode=search`
+    );
+    renderSimulation(result);
+    renderResult(result.accepted, 'Search');
+  } catch(e) {}
+}
+
+async function doFindAll() {
+  const p = document.getElementById('patternInput').value.trim();
+  const t = document.getElementById('textInput').value;
+  if (!p) return;
+  currentText = t;
+  hideError();
+
+  try {
+    const result = await api(
+      `/api/match?pattern=${encodeURIComponent(p)}&text=${encodeURIComponent(t)}&mode=findall`
+    );
+    renderSimulation(result);
+    renderResult(result.accepted, 'FindAll');
+  } catch(e) {}
+}
+
+function doClear() {
+  document.getElementById('textInput').value = '';
+  currentText = '';
+  document.getElementById('simBody').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;color:#ccc;padding:20px">尚未执行匹配</td></tr>';
+  const banner = document.getElementById('resultBanner');
+  banner.className = 'result-banner idle';
+  banner.textContent = '等待操作...';
+  document.getElementById('vizArea').innerHTML = '';
+  showVisualization(currentTab);
+}
+
+// ---- Simulation rendering ----
+function renderSimulation(result) {
+  const tbody = document.getElementById('simBody');
+  const steps = result.steps;
+  let html = '';
+
+  steps.forEach((s, i) => {
+    let rowClass = '';
+    let acceptText = s.accepted ? 'Yes' : 'No';
+
+    if (s.error) {
+      rowClass = 'error-row';
+      acceptText = 'ERROR';
+    } else if (s.accepted && i === steps.length - 1) {
+      rowClass = 'final-row';
+    }
+
+    const fromState = s.from_state === -1 ? '—' : `q${s.from_state}`;
+    const toState = s.to_state === -1 ? '—' : `q${s.to_state}`;
+    const charDisplay = s.char === '' ? '(start)' : `'${s.char}'`;
+
+    html += `<tr class="${rowClass}">
+      <td>${i}</td>
+      <td>${s.pos}</td>
+      <td>${charDisplay}</td>
+      <td>${fromState}</td>
+      <td>${toState}</td>
+      <td>${acceptText}</td>
+    </tr>`;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function renderResult(accepted, mode) {
+  const banner = document.getElementById('resultBanner');
+  if (accepted) {
+    banner.className = 'result-banner accept';
+    banner.textContent = `[${mode}] ACCEPT — 字符串 "${currentText}" 匹配模式 "${currentPattern}"`;
+  } else {
+    banner.className = 'result-banner reject';
+    banner.textContent = `[${mode}] REJECT — 字符串 "${currentText}" 不匹配模式 "${currentPattern}"`;
+  }
+}
+
+// ---- Shortcuts ----
+function loadExample(pattern, text) {
+  document.getElementById('patternInput').value = pattern;
+  document.getElementById('textInput').value = text;
+  currentText = text;
+  onPatternChange();
+}
+</script>
+
+</body>
+</html>

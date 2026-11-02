@@ -1,0 +1,196 @@
+<mxfile host="app.diagrams.net" modified="2026-10-28T00:00:00.000Z" agent="regex-compiler" version="24.0.0">
+  <diagram name="System Architecture" id="arch">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ===== Title ===== -->
+        <mxCell id="title" value="正则表达式编译器 — 系统架构" style="text;fontSize=20;fontStyle=1;align=center;" vertex="1" parent="1">
+          <mxGeometry x="520" y="18" width="420" height="30"/>
+        </mxCell>
+        <mxCell id="subtitle" value="Regex → Lexer → Parser → AST → Alphabet → Thompson NFA → Subset DFA → Hopcroft MinDFA" style="text;fontSize=11;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="320" y="48" width="820" height="20"/>
+        </mxCell>
+
+        <!-- ===== Layer 0: Input ===== -->
+        <mxCell id="input" value="正则表达式&#10;a(b|c)*d" style="rounded=1;fillColor=#EEEDFE;strokeColor=#534AB7;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="110" width="150" height="60"/>
+        </mxCell>
+
+        <!-- ===== Layer 1: Frontend ===== -->
+        <mxCell id="phase1" value="前端 Frontend" style="text;fontSize=12;fontStyle=1;fontColor=#534AB7;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="86" width="140" height="20"/>
+        </mxCell>
+
+        <mxCell id="arrow1" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="input" target="lexer">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="lexer" value="Lexer&#10;lexer.py&#10;字符扫描 → Token 流" style="rounded=1;fillColor=#E6F1FB;strokeColor=#185FA5;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="110" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow2" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="lexer" target="parser">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="parser" value="Parser&#10;parser.py&#10;递归下降 → AST" style="rounded=1;fillColor=#E1F5EE;strokeColor=#0F6E56;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="440" y="110" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow3" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="parser" target="charset">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <!-- ===== Alphabet ===== -->
+        <mxCell id="charset" value="Alphabet&#10;charset.py&#10;字符类不相交划分" style="rounded=1;fillColor=#FFF4E5;strokeColor=#BA7517;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="640" y="110" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="note_alpha" value="按「被哪些字符类包含」&#10;的签名分组，保证&#10;DFA 转移唯一确定" style="rounded=1;fillColor=#FFFFFF;strokeColor=#B4B2A9;fontSize=10;dashed=1;align=left;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="820" y="110" width="160" height="60"/>
+        </mxCell>
+
+        <!-- ===== Layer 2: Backend ===== -->
+        <mxCell id="phase2" value="后端 Backend" style="text;fontSize=12;fontStyle=1;fontColor=#D85A30;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="230" width="140" height="20"/>
+        </mxCell>
+
+        <mxCell id="arrow4" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;exitPerimeter=0;" edge="1" parent="1" source="charset" target="nfa">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="nfa" value="Thompson NFA&#10;nfa.py&#10;AST → ε-NFA" style="rounded=1;fillColor=#FAECE7;strokeColor=#D85A30;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="640" y="250" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow5" style="endArrow=classic;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="nfa" target="dfa">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="dfa" value="Subset DFA&#10;dfa.py&#10;ε-NFA → DFA" style="rounded=1;fillColor=#FAEEDA;strokeColor=#BA7517;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="440" y="250" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow6" style="endArrow=classic;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="dfa" target="minimize">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="minimize" value="Hopcroft&#10;minimize.py&#10;DFA → 最小 DFA" style="rounded=1;fillColor=#EAF3DE;strokeColor=#639922;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="250" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="note_hopcroft" value="先补全 DFA（加死状态）&#10;再按划分精炼 + 小半边&#10;入队优化，O(k·n·log n)" style="rounded=1;fillColor=#FFFFFF;strokeColor=#B4B2A9;fontSize=10;dashed=1;align=left;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="40" y="250" width="160" height="60"/>
+        </mxCell>
+
+        <!-- ===== Layer 3: Core ===== -->
+        <mxCell id="phase3" value="核心 Core" style="text;fontSize=12;fontStyle=1;fontColor=#534AB7;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="370" width="140" height="20"/>
+        </mxCell>
+
+        <mxCell id="arrow7" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="minimize" target="matcher">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="matcher" value="RegexMatcher&#10;matcher.py&#10;match / search / findall" style="rounded=1;fillColor=#EEEDFE;strokeColor=#534AB7;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="390" width="150" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow8" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="matcher" target="cli">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="cli" value="CLI&#10;cli.py&#10;命令行工具" style="rounded=1;fillColor=#F1EFE8;strokeColor=#888780;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="440" y="390" width="130" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow9" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="cli" target="server">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="server" value="Web Server&#10;server.py&#10;ThreadingHTTPServer" style="rounded=1;fillColor=#E1F5EE;strokeColor=#0F6E56;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="620" y="390" width="140" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow10" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="server" target="gui">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="gui" value="GUI&#10;gui.html&#10;原生 HTML/CSS/JS" style="rounded=1;fillColor=#FBEAF0;strokeColor=#D4537E;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="810" y="390" width="140" height="60"/>
+        </mxCell>
+
+        <!-- ===== Layer 4: Visualization ===== -->
+        <mxCell id="phase4" value="可视化 Visualization" style="text;fontSize=12;fontStyle=1;fontColor=#D4537E;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="510" width="180" height="20"/>
+        </mxCell>
+
+        <mxCell id="arrow11" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="matcher" target="viz">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="viz" value="layout.py + svg.py&#10;+ drawio.py&#10;自动机图形渲染" style="rounded=1;fillColor=#FBEAF0;strokeColor=#D4537E;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="240" y="530" width="180" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow12" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="viz" target="svgout">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="svgout" value="SVG&#10;NFA / DFA / MinDFA" style="rounded=1;fillColor=#F1EFE8;strokeColor=#888780;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="470" y="530" width="130" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow13" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="svgout" target="drawioout">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <mxCell id="drawioout" value="draw.io XML&#10;可在 draw.io 编辑" style="rounded=1;fillColor=#F1EFE8;strokeColor=#888780;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="650" y="530" width="140" height="60"/>
+        </mxCell>
+
+        <!-- ===== Layer 5: Test Input ===== -->
+        <mxCell id="test_input" value="测试字符串输入" style="shape=parallelogram;fillColor=#D3D1C7;strokeColor=#888780;fontSize=12;perimeter=parallelogramPerimeter;" vertex="1" parent="1">
+          <mxGeometry x="40" y="535" width="130" height="50"/>
+        </mxCell>
+
+        <mxCell id="arrow14" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="test_input" target="matcher">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <!-- ===== Result ===== -->
+        <mxCell id="result" value="匹配结果&#10;Accept / Reject + 模拟轨迹" style="shape=parallelogram;fillColor=#C0DD97;strokeColor=#639922;fontSize=12;perimeter=parallelogramPerimeter;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="840" y="535" width="180" height="50"/>
+        </mxCell>
+
+        <mxCell id="arrow15" style="endArrow=classic;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" edge="1" parent="1" source="matcher" target="result">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <!-- ===== Testing ===== -->
+        <mxCell id="phase5" value="测试 Testing" style="text;fontSize=12;fontStyle=1;fontColor=#0F6E56;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="650" width="140" height="20"/>
+        </mxCell>
+
+        <mxCell id="tests" value="tests/&#10;113 个用例&#10;含与 Python re 的差分对拍" style="rounded=1;fillColor=#E1F5EE;strokeColor=#0F6E56;fontSize=11;whiteSpace=wrap;" vertex="1" parent="1">
+          <mxGeometry x="40" y="670" width="180" height="60"/>
+        </mxCell>
+
+        <mxCell id="arrow16" style="endArrow=classic;exitX=0.5;exitY=0;entryX=0.5;entryY=1;dashed=1;" edge="1" parent="1" source="matcher" target="tests">
+          <mxGeometry relative="1"/>
+        </mxCell>
+
+        <!-- ===== Legend ===== -->
+        <mxCell id="legend" value="算法复杂度：Lexer O(n) | Parser O(n) | Thompson O(n) | Subset O(2^m·k) | Hopcroft O(k·n·log n) | Match O(m)" style="text;fontSize=10;fontColor=#888888;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="790" width="740" height="20"/>
+        </mxCell>
+        <mxCell id="legend2" value="运行时零第三方依赖 · Python 3.10+" style="text;fontSize=10;fontColor=#888888;align=center;" vertex="1" parent="1">
+          <mxGeometry x="280" y="810" width="740" height="20"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

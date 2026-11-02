@@ -1,0 +1,9 @@
+# 运行时依赖：无 —— 本项目仅使用 Python 标准库
+#
+# 开发/测试依赖通过 pyproject.toml 的 optional-dependencies 安装：
+#   pip install -e ".[dev]"
+
+# 如需独立安装开发依赖，可取消下面两行的注释
+# pytest>=7.4
+# mypy>=1.8
+# ruff>=0.4
